@@ -66,7 +66,7 @@ class GameField:
             if self.field[y][x] == 0:
                 self.open_neighbors(x, y)
             if self.opened_cells_count == self.width * self.height - self.mines_count:
-                # save_game_state(self.filled_playing_field)
+                save_game_state(self.filled_playing_field)
                 self.field = self.filled_playing_field
                 check_result(True, self.opened_cells_count)
 
