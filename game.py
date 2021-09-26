@@ -1,10 +1,12 @@
 import sys
 from game_field import GameField
 import os
+import time
 
 
 def start_game():
     global game_field
+    global start_time
     game_parameters = str(input("Please enter the game parameters "
                                 "(field size in X, field size in Y,\n"
                                 " number of mines). If you want to use the\n"
@@ -15,6 +17,7 @@ def start_game():
     elif params == "":
         game_field = GameField()
     else:
+        start_time = time.time()
         game_field = GameField(params['width'], params['height'], params['mines_count'])
 
     while True:
@@ -55,22 +58,16 @@ def process_player_command(command):
         x, y, action = command.split()
         if x.isdigit() and y.isdigit():
             x, y = int(x), int(y)
-            if x > game_field.width or y > game_field.height:
+            if x <= 0 or x > game_field.width or y <= 0 or y > game_field.height:
                 change_console_message("Going beyond the boundaries of the field. "
                                        "Read the rules and try again!\n")
             else:
                 if action == "flag":
                     change_console_message()
-                    game_field.set_flag(x, y)
-                    if first_move_flag:
-                        game_field.fill_playing_field(x, y)
-                        first_move_flag = False
+                    game_field.set_flag(x - 1, game_field.height - y)
                 elif action == "open":
                     change_console_message()
-                    game_field.open_cell(x, y)
-                    if first_move_flag:
-                        game_field.fill_playing_field(x, y)
-                        first_move_flag = False
+                    game_field.open_cell(x - 1, game_field.height - y)
                 else:
                     change_console_message("Incorrect command. "
                                            "Read the rules and try again!\n")
@@ -84,15 +81,38 @@ def process_player_command(command):
 
 def display_field_state():
     os.system("clear")
-    for row_index, row in enumerate(game_field.field):
-        # print("{0} | ".format(row_index+1), end=' ')
-        for number in row:
-            print(str(number) + "   ", end='')
-        for _ in range(2):
-            print()
-    # for column_index in range(game_field.width):
-    #     print(" _", end=' ')
-    # print()
+    print()
+    print("\t\t\tMINESWEEPER\n")
+
+    st = "   "
+    for i in range(game_field.width):
+        st = st + "     " + str(i + 1)
+    print(st)
+
+    for r in range(game_field.height):
+        st = "     "
+        if r == 0:
+            for c in range(game_field.width):
+                st = st + "______"
+            print(st)
+
+        st = "     "
+        for c in range(game_field.width):
+            st = st + "|     "
+        print(st + "|")
+
+        st = "  " + str(game_field.height - r) + "  "
+        for c in range(game_field.width):
+            st = st + "|  " + str(game_field.field[r][c]) + "  "
+        print(st + "|")
+
+        st = "     "
+        for c in range(game_field.width):
+            st = st + "|_____"
+        print(st + '|')
+
+    print()
+    print("Opened cells:   " + str(game_field.opened_cells_count))
 
 
 def change_console_message(new_console_message=
@@ -114,5 +134,5 @@ def restart_game():
         sys.exit()
 
 
+start_time = time.time()
 console_message = "Enter the coordinates of the cell in X and Y:   "
-first_move_flag = True
